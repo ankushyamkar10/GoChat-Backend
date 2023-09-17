@@ -2,7 +2,7 @@ const {
   sendMsg,
   getMessages,
   deleteAllMsg,
-} = require("../../controllers/messageController");
+} = require("../controllers/messageController");
 const router = require("express").Router();
 
 router.post("/addMsg", sendMsg).post("/getMsgs", getMessages);

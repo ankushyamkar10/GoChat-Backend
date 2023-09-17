@@ -5,7 +5,7 @@ const {
   loginUser,
   getAllUsers,
   setAvatar,
-} = require("../../controllers/userController");
+} = require("../controllers/userController");
 
 router
   .post("/register", registerUser)

@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const cloudinary = require("../config/cloudinary");
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, password, email } = req.body;
@@ -96,11 +97,20 @@ const setAvatar = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { imageUrl } = req.body;
 
+  const result = await cloudinary.uploader.upload(imageUrl, {
+    folder: "gochat-users",
+  });
+
+  console.log(result.secure_url);
+
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
       isAvtarSet: true,
-      img: imageUrl,
+      img: {
+        public_id: result.public_id,
+        utl: result.secure_url,
+      },
     },
     {
       new: true,
