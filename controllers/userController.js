@@ -36,6 +36,7 @@ const registerUser = asyncHandler(async (req, res) => {
       isAvtarSet: newUser.isAvtarSet,
       img: newUser.img,
       token,
+      contacts: newUser.contacts,
     });
   } else {
     res.status(400).json({ message: "Invalid user data!" });
@@ -60,6 +61,7 @@ const loginUser = asyncHandler(async (req, res) => {
         isAvtarSet: user.isAvtarSet,
         img: user.img,
         token,
+        contacts: user.contacts,
       });
       // console.log(`logged in as ${user.name}`);
     } else {
@@ -70,14 +72,6 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-const generateToken = (id, res) => {
-  const token = jwt.sign({ id }, process.env.JWT_SEC, {
-    expiresIn: "30d",
-  });
-  res.cookie("jwt", token, { httpOnly: true, secure: true });
-  return token;
-};
-
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find({ _id: { $ne: req.params.id } }).select([
     "email",
@@ -86,7 +80,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
     "_id",
     "isAvtarSet",
     "token",
+    "contacts",
   ]);
+
   if (users) res.status(200).json(users);
   else {
     res.status(400).json({ message: "Users not found!" });
@@ -101,15 +97,13 @@ const setAvatar = asyncHandler(async (req, res) => {
     folder: "gochat-users",
   });
 
-  console.log(result.secure_url);
-
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
       isAvtarSet: true,
       img: {
         public_id: result.public_id,
-        utl: result.secure_url,
+        image_url: result.secure_url,
       },
     },
     {
@@ -118,14 +112,65 @@ const setAvatar = asyncHandler(async (req, res) => {
   );
 
   if (updatedUser) {
-    res.status(200).json(updatedUser);
+    const token = generateToken(updatedUser._id, res);
+    res.status(201).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAvtarSet: updatedUser.isAvtarSet,
+      img: updatedUser.img,
+      token,
+      contacts: updatedUser.contacts,
+    });
   } else
     res.status(500).json({ message: "Server wasn't able to set your avtar!" });
 });
+
+const addUser = asyncHandler(async (req, res) => {
+  const { user_id, addUser } = req.body;
+
+  if (await User.findById(user_id)) {
+    let updatedUser;
+    for (let user in addUser) {
+      updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        {
+          $push: { contacts: addUser[user] },
+        },
+        { new: true }
+      );
+    }
+
+    if (updatedUser) {
+      const token = generateToken(updatedUser._id, res);
+      console.log(updatedUser.contacts);
+      res.status(201).json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAvtarSet: updatedUser.isAvtarSet,
+        img: updatedUser.img,
+        token,
+        contacts: updatedUser.contacts,
+      });
+      return;
+    }
+  }
+  res.status(500).json({ message: "Something went wrong" });
+});
+
+const generateToken = (id, res) => {
+  const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+  res.cookie("jwt", token, { httpOnly: true, secure: true });
+  return token;
+};
 
 module.exports = {
   registerUser,
   loginUser,
   getAllUsers,
   setAvatar,
+  addUser,
 };

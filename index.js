@@ -66,21 +66,22 @@ io.on("connection", (socket) => {
     // log("joined groupId", groupId);
   });
 
-  socket.on("sendMsg", async ({ text, recieverId, sender }) => {
+  socket.on("sendMsg", async ({ data, recieverId, sender }) => {
     const recieverSocketId = currentUsers[recieverId];
     // log(sender);
     if (recieverSocketId) {
       io.to(recieverSocketId).emit("recieveMsg", {
-        message: { text },
+        message: { text: data.text, time_stamp: data.time_stamp },
         sender,
       });
-      // log("sent to ", recieverSocketId);
-    } else
+      log("sent to ", recieverSocketId);
+    } else {
       io.in(recieverId).emit("recieveMsg", {
-        message: { text },
+        message: { text: data.text, time_stamp: data.time_stamp },
         sender,
       });
-    log(recieverId);
+      log("sent to group no", recieverSocketId);
+    }
   });
 });
 

@@ -23,15 +23,15 @@ const userSchema = mongoose.Schema(
     img: {
       public_id: {
         type: String,
-        required: true,
       },
-      url: {
+      image_url: {
         type: String,
         required: true,
         default:
           "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
       },
     },
+    contacts: { type: Array, default: [] },
   },
   {
     timestamps: true,

@@ -3,20 +3,21 @@ const Message = require("../models/messageSchema");
 const Group = require("..//models/groupSchema");
 
 const sendMsg = asyncHandler(async (req, res) => {
-  const { text, sender, reciever } = req.body;
+  const { message, senderId, recieverId } = req.body;
 
-  const isGrp = await Group.findById({ _id: reciever });
+  const isGrp = await Group.findById({ _id: recieverId });
 
   if (isGrp) {
     const newMsg = {
       message: {
-        text,
+        text: message.text,
+        time_stamp: message.time_stamp,
       },
       users: isGrp.members,
-      sender: sender,
+      senderId: senderId,
     };
     const updatedGrp = await Group.findByIdAndUpdate(
-      { _id: reciever },
+      { _id: recieverId },
       { $push: { messages: newMsg } },
       { new: true }
     );
@@ -24,7 +25,7 @@ const sendMsg = asyncHandler(async (req, res) => {
       res.status(200).json({
         message: updatedGrp.messages.slice(-1)[0].message,
         isSenderMe: true,
-        sender,
+        senderId,
       });
     } else {
       res.status(400).json({ msg: "Failed to send msg" });
@@ -32,15 +33,16 @@ const sendMsg = asyncHandler(async (req, res) => {
   } else {
     const newMsg = await Message.create({
       message: {
-        text,
+        text: message.text,
+        time_stamp: message.time_stamp,
       },
-      users: [sender, reciever],
-      sender: sender,
+      users: [senderId, recieverId],
+      senderId: senderId,
     });
     if (newMsg) {
       res
         .status(200)
-        .json({ message: newMsg.message, isSenderMe: true, sender });
+        .json({ message: newMsg.message, isSenderMe: true, senderId });
     } else res.status(400).json({ msg: "Failed to send msg" });
   }
 });
@@ -62,7 +64,7 @@ const getMessages = asyncHandler(async (req, res) => {
     const allMsg = msgs.map((msg) => {
       return {
         message: msg.message,
-        isSenderMe: msg.sender.toString() === from,
+        isSenderMe: msg.senderId === from,
         sender: msg.sender,
       };
     });

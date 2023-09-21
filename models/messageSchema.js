@@ -7,9 +7,13 @@ const messageSchema = mongoose.Schema(
         type: String,
         required: true,
       },
+      time_stamp: {
+        type: String,
+        required: true,
+      },
     },
     users: Array,
-    sender: {
+    senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
