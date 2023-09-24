@@ -11,7 +11,7 @@ const protect = asyncHandler(async (req, res, next) => {
   ) {
     try {
       // token = req.headers.authorization.substring(7);
-      console.log(req.headers.authorization);
+
       //Get token
       token = req.headers.authorization.split(" ")[1];
 

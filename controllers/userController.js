@@ -37,6 +37,8 @@ const registerUser = asyncHandler(async (req, res) => {
       img: newUser.img,
       token,
       contacts: newUser.contacts,
+      recievedRequests: newUser.recievedRequests,
+      sentRequests: newUser.sentRequests,
     });
   } else {
     res.status(400).json({ message: "Invalid user data!" });
@@ -62,6 +64,8 @@ const loginUser = asyncHandler(async (req, res) => {
         img: user.img,
         token,
         contacts: user.contacts,
+        recievedRequests: user.recievedRequests,
+        sentRequests: user.sentRequests,
       });
       // console.log(`logged in as ${user.name}`);
     } else {
@@ -79,8 +83,6 @@ const getAllUsers = asyncHandler(async (req, res) => {
     "img",
     "_id",
     "isAvtarSet",
-    "token",
-    "contacts",
   ]);
 
   if (users) res.status(200).json(users);
@@ -121,41 +123,120 @@ const setAvatar = asyncHandler(async (req, res) => {
       img: updatedUser.img,
       token,
       contacts: updatedUser.contacts,
+      recievedRequests: updatedUser.recievedRequests,
+      sentRequests: updatedUser.sentRequests,
     });
   } else
     res.status(500).json({ message: "Server wasn't able to set your avtar!" });
 });
 
-const addUser = asyncHandler(async (req, res) => {
-  const { user_id, addUser } = req.body;
+const sendChatRequest = asyncHandler(async (req, res) => {
+  const { data } = req.body;
+  // const { recieverId, senderId } = data;
 
-  if (await User.findById(user_id)) {
-    let updatedUser;
-    for (let user in addUser) {
-      updatedUser = await User.findByIdAndUpdate(
-        req.user.id,
-        {
-          $push: { contacts: addUser[user] },
-        },
-        { new: true }
-      );
-    }
+  const updatedUser = await User.findByIdAndUpdate(
+    data.senderId,
+    {
+      $push: { sentRequests: data.recieverId },
+    },
+    { new: true }
+  );
 
-    if (updatedUser) {
-      const token = generateToken(updatedUser._id, res);
-      console.log(updatedUser.contacts);
-      res.status(201).json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        isAvtarSet: updatedUser.isAvtarSet,
-        img: updatedUser.img,
-        token,
-        contacts: updatedUser.contacts,
-      });
-      return;
-    }
+  if (updatedUser) {
+    const token = generateToken(updatedUser._id, res);
+
+    res.status(201).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAvtarSet: updatedUser.isAvtarSet,
+      img: updatedUser.img,
+      token,
+      contacts: updatedUser.contacts,
+      recievedRequests: updatedUser.recievedRequests,
+      sentRequests: updatedUser.sentRequests,
+    });
+  } else {
+    res.status(500).json({ message: "Something went wrong" });
   }
+});
+
+const recieveChatRequest = asyncHandler(async (req, res) => {
+  const { data } = req.body;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    data.recieverId,
+    {
+      $push: { recievedRequests: data.senderId },
+    },
+    { new: true }
+  );
+
+  if (updatedUser) {
+    const token = generateToken(updatedUser._id, res);
+    res.status(201).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAvtarSet: updatedUser.isAvtarSet,
+      img: updatedUser.img,
+      token,
+      contacts: updatedUser.contacts,
+      recievedRequests: updatedUser.recievedRequests,
+      sentRequests: updatedUser.sentRequests,
+    });
+  } else {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+const updateRequestAndContacts = asyncHandler(async (req, res) => {
+  const { actionId, action } = req.body;
+  let updatedUser = null;
+
+  if (action === "accepted") {
+    updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $push: { contacts: actionId },
+        $pull: {
+          sentRequests: { $in: [actionId] },
+          recievedRequests: { $in: [actionId] },
+        },
+      },
+      { new: true }
+    );
+  } else if (action === "rejected") {
+    updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $pull: {
+          sentRequests: { $in: [actionId] },
+          recievedRequests: { $in: [actionId] },
+        },
+      },
+      { new: true }
+    );
+  } else {
+    res.status(403).json({ message: "Please choose a valid action!" });
+  }
+
+  if (updatedUser) {
+    const token = generateToken(updatedUser._id, res);
+    res.status(201).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAvtarSet: updatedUser.isAvtarSet,
+      img: updatedUser.img,
+      token,
+      contacts: updatedUser.contacts,
+      sentRequests: updatedUser.sentRequests,
+      recievedRequests: updatedUser.recievedRequests,
+    });
+    return;
+  }
+
   res.status(500).json({ message: "Something went wrong" });
 });
 
@@ -172,5 +253,7 @@ module.exports = {
   loginUser,
   getAllUsers,
   setAvatar,
-  addUser,
+  updateRequestAndContacts,
+  sendChatRequest,
+  recieveChatRequest,
 };

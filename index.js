@@ -59,6 +59,7 @@ global.currentUsers = {};
 io.on("connection", (socket) => {
   socket.on("addUser", (userId) => {
     currentUsers[userId] = socket.id;
+    log(userId);
   });
 
   socket.on("joinGroup", (groupId) => {
@@ -81,6 +82,43 @@ io.on("connection", (socket) => {
         sender,
       });
       log("sent to group no", recieverSocketId);
+    }
+  });
+
+  socket.on("sendChatRequest", async ({ requestFrom, requestTo }) => {
+    const recieverSocketId = currentUsers[requestTo];
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("recieveChatRequest", {
+        requestFrom,
+        requestTo,
+      });
+      log(requestFrom, "sent request to user_id", requestTo);
+    }
+  });
+
+  socket.on("acceptRequest", async ({ acceptorId, senderId }) => {
+    // acceptorId : user who accpets
+    // senderId : user who sends
+    const recieverSocketId = currentUsers[senderId];
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("requestAccepted", {
+        senderId,
+        acceptorId,
+      });
+      log(acceptorId, "accepted request of", senderId);
+    }
+  });
+
+  socket.on("rejectRequest", async ({ rejectorId, senderId }) => {
+    // rejectorId : user who accpets
+    // senderId : user who sends
+    const recieverSocketId = currentUsers[senderId];
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("requestRejected", {
+        senderId,
+        rejectorId,
+      });
+      log(rejectorId, "rejected request of", senderId);
     }
   });
 });

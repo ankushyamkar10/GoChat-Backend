@@ -6,13 +6,20 @@ const {
   loginUser,
   getAllUsers,
   setAvatar,
-  addUser,
+  updateRequestAndContacts,
+  sendChatRequest,
+  recieveChatRequest,
 } = require("../controllers/userController");
 
 router
   .post("/register", registerUser)
   .post("/login", loginUser)
   .get("/all/:id", getAllUsers);
-router.patch("/:id", setAvatar).patch("/", protect, addUser);
+router.patch("/:id", setAvatar);
+
+router
+  .post("/sendChatRequest", protect, sendChatRequest)
+  .post("/recieveChatRequest", protect, recieveChatRequest)
+  .post("/requestAction", protect, updateRequestAndContacts);
 
 module.exports = router;

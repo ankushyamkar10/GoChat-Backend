@@ -31,6 +31,14 @@ const userSchema = mongoose.Schema(
           "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
       },
     },
+    recievedRequests: {
+      type: Array,
+      default: [],
+    },
+    sentRequests: {
+      type: Array,
+      default: [],
+    },
     contacts: { type: Array, default: [] },
   },
   {
