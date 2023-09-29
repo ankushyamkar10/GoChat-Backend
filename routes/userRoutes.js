@@ -9,6 +9,7 @@ const {
   updateRequestAndContacts,
   sendChatRequest,
   recieveChatRequest,
+  cancelChatRequest,
 } = require("../controllers/userController");
 
 router
@@ -16,10 +17,10 @@ router
   .post("/login", loginUser)
   .get("/all/:id", getAllUsers);
 router.patch("/:id", setAvatar);
-
 router
   .post("/sendChatRequest", protect, sendChatRequest)
   .post("/recieveChatRequest", protect, recieveChatRequest)
-  .post("/requestAction", protect, updateRequestAndContacts);
+  .post("/requestAction", protect, updateRequestAndContacts)
+  .post("/cancelChatRequest", protect, cancelChatRequest);
 
 module.exports = router;

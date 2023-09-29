@@ -65,9 +65,10 @@ const getMessages = asyncHandler(async (req, res) => {
       return {
         message: msg.message,
         isSenderMe: msg.senderId === from,
-        sender: msg.sender,
+        sender: msg.senderId,
       };
     });
+
     res.status(200).json(allMsg);
   } else res.status(400).json({ msg: "Failed to retieve all the msgs" });
 });

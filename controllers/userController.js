@@ -190,6 +190,48 @@ const recieveChatRequest = asyncHandler(async (req, res) => {
   }
 });
 
+const cancelChatRequest = asyncHandler(async (req, res) => {
+  const { data } = req.body;
+
+  let updatedUser = null;
+  if (data.action === "reciever") {
+    updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $pull: { recievedRequests: { $in: [data.senderId] } },
+      },
+      { new: true }
+    );
+  } else if (data.action === "sender") {
+    updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $pull: { sentRequests: { $in: [data.recieverId] } },
+      },
+      { new: true }
+    );
+  } else {
+    res.status(403).json({ message: "Choose valid action!" });
+  }
+
+  if (updatedUser) {
+    const token = generateToken(updatedUser._id, res);
+    res.status(201).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAvtarSet: updatedUser.isAvtarSet,
+      img: updatedUser.img,
+      token,
+      contacts: updatedUser.contacts,
+      recievedRequests: updatedUser.recievedRequests,
+      sentRequests: updatedUser.sentRequests,
+    });
+  } else {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
 const updateRequestAndContacts = asyncHandler(async (req, res) => {
   const { actionId, action } = req.body;
   let updatedUser = null;
@@ -256,4 +298,5 @@ module.exports = {
   updateRequestAndContacts,
   sendChatRequest,
   recieveChatRequest,
+  cancelChatRequest,
 };

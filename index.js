@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
         message: { text: data.text, time_stamp: data.time_stamp },
         sender,
       });
-      log("sent to group no", recieverSocketId);
+      log("sent to group no", recieverId);
     }
   });
 
@@ -93,6 +93,16 @@ io.on("connection", (socket) => {
         requestTo,
       });
       log(requestFrom, "sent request to user_id", requestTo);
+    }
+  });
+  socket.on("cancelChatRequest", async ({ requestFrom, requestTo }) => {
+    const recieverSocketId = currentUsers[requestTo];
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("cancelChatRequest", {
+        requestFrom,
+        requestTo,
+      });
+      log(requestFrom, "canceled request to user_id", requestTo);
     }
   });
 
