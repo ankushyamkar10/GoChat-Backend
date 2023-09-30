@@ -3,10 +3,15 @@ const {
   makeGroup,
   getGroups,
   leaveGroup,
+  getGroup,
+  addUserToGroup,
 } = require("../controllers/groupController");
 
 router.post("/:id", makeGroup);
-router.get("/:id", getGroups);
-router.post("/leaveGroup/:groupId", leaveGroup);
+router.get("/all/:id", getGroups);
+router
+  .get("/:groupId", getGroup)
+  .post("/leaveGroup/:groupId", leaveGroup)
+  .post("/:groupId/add", addUserToGroup);
 
 module.exports = router;

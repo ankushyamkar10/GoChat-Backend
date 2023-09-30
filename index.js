@@ -52,14 +52,12 @@ if (process.env.NODE_ENV === "production") {
   app.get("/", (req, res) => res.send("Please set to production"));
 }
 
-// global.onlineUsers = new Map();
-global.currGroup = {};
 global.currentUsers = {};
 
 io.on("connection", (socket) => {
   socket.on("addUser", (userId) => {
     currentUsers[userId] = socket.id;
-    log(userId);
+    log(currentUsers[userId]);
   });
 
   socket.on("joinGroup", (groupId) => {
@@ -67,19 +65,27 @@ io.on("connection", (socket) => {
     // log("joined groupId", groupId);
   });
 
-  socket.on("sendMsg", async ({ data, recieverId, sender }) => {
+  socket.on("sendMsg", async ({ data, recieverId, senderId }) => {
     const recieverSocketId = currentUsers[recieverId];
-    // log(sender);
+
     if (recieverSocketId) {
       io.to(recieverSocketId).emit("recieveMsg", {
-        message: { text: data.text, time_stamp: data.time_stamp },
-        sender,
+        message: {
+          text: data.text,
+          time_stamp: data.time_stamp,
+          date_stamp: data.date_stamp,
+        },
+        senderId,
       });
-      log("sent to ", recieverSocketId);
+      log("sent to", recieverSocketId);
     } else {
       io.in(recieverId).emit("recieveMsg", {
-        message: { text: data.text, time_stamp: data.time_stamp },
-        sender,
+        message: {
+          text: data.text,
+          time_stamp: data.time_stamp,
+          date_stamp: data.date_stamp,
+        },
+        senderId,
       });
       log("sent to group no", recieverId);
     }
@@ -87,6 +93,7 @@ io.on("connection", (socket) => {
 
   socket.on("sendChatRequest", async ({ requestFrom, requestTo }) => {
     const recieverSocketId = currentUsers[requestTo];
+
     if (recieverSocketId) {
       io.to(recieverSocketId).emit("recieveChatRequest", {
         requestFrom,
@@ -97,6 +104,7 @@ io.on("connection", (socket) => {
   });
   socket.on("cancelChatRequest", async ({ requestFrom, requestTo }) => {
     const recieverSocketId = currentUsers[requestTo];
+
     if (recieverSocketId) {
       io.to(recieverSocketId).emit("cancelChatRequest", {
         requestFrom,
@@ -110,6 +118,7 @@ io.on("connection", (socket) => {
     // acceptorId : user who accpets
     // senderId : user who sends
     const recieverSocketId = currentUsers[senderId];
+
     if (recieverSocketId) {
       io.to(recieverSocketId).emit("requestAccepted", {
         senderId,
@@ -123,6 +132,7 @@ io.on("connection", (socket) => {
     // rejectorId : user who accpets
     // senderId : user who sends
     const recieverSocketId = currentUsers[senderId];
+
     if (recieverSocketId) {
       io.to(recieverSocketId).emit("requestRejected", {
         senderId,

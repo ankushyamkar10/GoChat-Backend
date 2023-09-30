@@ -12,6 +12,7 @@ const sendMsg = asyncHandler(async (req, res) => {
       message: {
         text: message.text,
         time_stamp: message.time_stamp,
+        date_stamp: message.date_stamp, 
       },
       users: isGrp.members,
       senderId: senderId,
@@ -35,6 +36,7 @@ const sendMsg = asyncHandler(async (req, res) => {
       message: {
         text: message.text,
         time_stamp: message.time_stamp,
+        date_stamp: message.date_stamp, 
       },
       users: [senderId, recieverId],
       senderId: senderId,
@@ -64,8 +66,8 @@ const getMessages = asyncHandler(async (req, res) => {
     const allMsg = msgs.map((msg) => {
       return {
         message: msg.message,
-        isSenderMe: msg.senderId === from,
-        sender: msg.senderId,
+        isSenderMe: msg.senderId.toString() === from,
+        senderId: msg.senderId,
       };
     });
 

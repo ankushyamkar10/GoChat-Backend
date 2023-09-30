@@ -58,7 +58,6 @@ const leaveGroup = asyncHandler(async (req, res) => {
   const { userId } = req.body;
   const { groupId } = req.params;
 
-
   const foundGroup = await Groups.findById(groupId);
   if (foundGroup) {
     const isUSerAdmin = foundGroup.admin.includes(userId);
@@ -82,8 +81,44 @@ const leaveGroup = asyncHandler(async (req, res) => {
   }
 });
 
+const getGroup = asyncHandler(async (req, res) => {
+  const { groupId } = req.params;
+  console.log(groupId);
+  const foundGroup = await Groups.findById(groupId);
+
+  if (foundGroup) {
+    res.status(200).json(foundGroup);
+  } else {
+    res.status(404).json({ message: "Group not found!" });
+  }
+});
+
+const addUserToGroup = asyncHandler(async (req, res) => {
+  const { userId, code } = req.body;
+  const { groupId } = req.params;
+  const foundGroup = await Groups.findById(groupId);
+
+  if (foundGroup) {
+    const checkCode = foundGroup.groupCode === code;
+
+    if (checkCode) {
+      foundGroup.members.push(userId);
+      await foundGroup.save();
+      res.status(200).json(foundGroup);
+    } else {
+      res
+        .status(403)
+        .json({ message: "Please check the group's id or code! " });
+    }
+  } else {
+    res.status(500).json({ message: "Something went wrong!" });
+  }
+});
+
 module.exports = {
   makeGroup,
   getGroups,
   leaveGroup,
+  getGroup,
+  addUserToGroup,
 };

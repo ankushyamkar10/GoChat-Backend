@@ -1,35 +1,43 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
-const groupSchema = mongoose.Schema({
+const groupSchema = mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     desc: {
-        type: String,
+      type: String,
     },
     admin: {
-        type: Array,
-        required: true,
-        ref : 'User'
+      type: Array,
+      required: true,
+      ref: "User",
     },
     members: {
-        type: Array,
+      type: Array,
     },
     isAvtarSet: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     img: {
-        type: String,
-        required: true,
-        default: "https://www.nicepng.com/png/detail/131-1318812_avatar-group-icon.png"
+      type: String,
+      required: true,
+      default:
+        "https://www.nicepng.com/png/detail/131-1318812_avatar-group-icon.png",
     },
     messages: {
-        type: Array,
+      type: Array,
     },
-}, {
-    timestamps: true
-})
+    groupCode: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = mongoose.model('Group', groupSchema)
+module.exports = mongoose.model("Group", groupSchema);
